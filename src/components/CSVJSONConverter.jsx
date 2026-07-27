@@ -48,7 +48,18 @@ export default function CSVJSONConverter() {
         const parsed = csvToJSON(input);
         setOutput(JSON.stringify(parsed, null, 2));
       } else {
-        const parsed = JSON.parse(input);
+        let parsed;
+        try {
+          parsed = JSON.parse(input);
+        } catch (e) {
+          throw new Error('Input is not valid JSON syntax: ' + e.message);
+        }
+        if (!Array.isArray(parsed)) {
+          throw new Error('Input JSON must be a valid Array of objects (e.g. [{"id": 1}])');
+        }
+        if (parsed.length > 0 && (typeof parsed[0] !== 'object' || parsed[0] === null)) {
+          throw new Error('Input JSON must contain objects within the array.');
+        }
         setOutput(jsonToCSV(parsed));
       }
     } catch (err) {

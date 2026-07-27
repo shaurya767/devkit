@@ -24,31 +24,31 @@
   --radius-sm: 6px;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'Fira Code', monospace;
-  --diff-added-bg: rgba(16, 185, 129, 0.1);
-  --diff-removed-bg: rgba(244, 63, 94, 0.1);
+  --diff-added-bg: rgba(16, 185, 129, 0.15);
+  --diff-removed-bg: rgba(244, 63, 94, 0.15);
 }
 
 [data-theme='light'] {
-  --bg: #f5f6f8;
-  --bg-sidebar: #ededf0;
+  --bg: #f8fafc;
+  --bg-sidebar: #f1f5f9;
   --bg-surface: #ffffff;
-  --bg-editor: #f8f9fa;
-  --border: rgba(0, 0, 0, 0.05);
-  --border-focus: rgba(79, 70, 229, 0.4);
+  --bg-editor: #f8fafc;
+  --border: #cbd5e1;
+  --border-focus: #4f46e5;
   --text-primary: #0f172a;
   --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-muted: #64748b;
   --accent: #4f46e5;
   --accent-hover: #3730a3;
-  --accent-light: rgba(79, 70, 229, 0.06);
-  --error: #e11d48;
-  --success: #059669;
+  --accent-light: rgba(79, 70, 229, 0.08);
+  --error: #dc2626;
+  --success: #16a34a;
   --warning: #d97706;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  --diff-added-bg: rgba(5, 150, 105, 0.08);
-  --diff-removed-bg: rgba(225, 29, 72, 0.08);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  --diff-added-bg: rgba(22, 163, 74, 0.15);
+  --diff-removed-bg: rgba(220, 38, 38, 0.15);
 }
 
 /* ─── Reset ─── */
@@ -357,50 +357,68 @@ input, textarea, select {
 .editor-box {
   flex: 1;
   background-color: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 440px;
 }
 .editor-header {
-  padding: 8px 16px;
+  padding: 10px 16px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   letter-spacing: 0.05em;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid var(--border);
   background-color: rgba(255, 255, 255, 0.01);
 }
 .code-textarea {
   width: 100%;
-  min-height: 320px;
+  flex: 1;
   padding: 16px;
   background-color: var(--bg-editor);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
-  resize: vertical;
+  resize: none;
 }
 
 /* ─── Diff / Comparisons ─── */
 .diff-output-box {
   border-radius: var(--radius);
   background-color: var(--bg-surface);
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 .diff-pre {
   padding: 16px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-all;
   background-color: var(--bg-editor);
+  color: var(--text-primary);
+}
+.diff-added {
+  background-color: var(--diff-added-bg);
+  color: var(--success);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.diff-removed {
+  background-color: var(--diff-removed-bg);
+  color: var(--error);
+  padding: 2px 4px;
+  border-radius: 4px;
+  text-decoration: line-through;
 }
 
 /* ─── JSON Tree Viewer ─── */
@@ -502,6 +520,7 @@ input, textarea, select {
 /* ─── Nice Panel view defaults ─── */
 .panel {
   background-color: var(--bg-surface);
+  border: 1px solid var(--border);
   padding: 16px;
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
