@@ -99,6 +99,10 @@ export default function App() {
     localStorage.setItem('devkit_theme', theme);
   }, [theme]);
 
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   // Keyboard shortcut listener (Cmd+K or Ctrl+K opens Command Palette)
   useEffect(() => {
     const handleKeyDown = (e) => {
