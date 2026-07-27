@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import JSONFormatter from './components/JSONFormatter';
 import DiffChecker from './components/DiffChecker';
 import URLEncoder from './components/URLEncoder';
@@ -24,7 +24,7 @@ import JSONTreeViewer from './components/JSONTreeViewer';
 
 import {
   Code, SplitSquareVertical, Link2, KeyRound, Binary, Search, Sun, Moon,
-  FileText, ShieldCheck, Palette, Calendar, Image, FileCode, Command
+  FileText, ShieldCheck, Palette, Calendar, Image, FileCode, Command, ChevronDown
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -81,27 +81,31 @@ const CATEGORIES = [
 
 export default function App() {
   const [activeTool, setActiveTool] = useState('json');
-  const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState(() => localStorage.getItem('devkit_theme') || 'dark');
-  
-  // Sidebar category toggle states (expanded by default)
-  const [expandedCats, setExpandedCats] = useState({
-    data: true, encoding: true, generators: true, frontend: true, editor: true
-  });
+  const [openDropdown, setOpenDropdown] = useState(null); // active category dropdown
 
   // Command Palette states
   const [showCmdPalette, setShowCmdPalette] = useState(false);
   const [cmdSearch, setCmdSearch] = useState('');
   const [selectedCmdIndex, setSelectedCmdIndex] = useState(0);
 
+  const headerRef = useRef(null);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('devkit_theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+  // Click outside to close dropdowns
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (headerRef.current && !headerRef.current.contains(e.target)) {
+        setOpenDropdown(null);
+      }
+    };
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, []);
 
   // Keyboard shortcut listener (Cmd+K or Ctrl+K opens Command Palette)
   useEffect(() => {
@@ -114,17 +118,22 @@ export default function App() {
       }
       if (e.key === 'Escape') {
         setShowCmdPalette(false);
+        setOpenDropdown(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const toggleCategory = (catId) => {
-    setExpandedCats(prev => ({ ...prev, [catId]: !prev[catId] }));
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
-  // Flattened tools list for search and Command Palette
+  const handleDropdownToggle = (catId, e) => {
+    e.stopPropagation();
+    setOpenDropdown(prev => prev === catId ? null : catId);
+  };
+
   const allTools = CATEGORIES.flatMap(cat => cat.tools);
 
   const filteredCmdTools = allTools.filter(t =>
@@ -148,90 +157,81 @@ export default function App() {
     }
   };
 
-  // Find component to render
+  const selectTool = (toolId) => {
+    setActiveTool(toolId);
+    setOpenDropdown(null);
+  };
+
   const CurrentToolComponent = allTools.find(t => t.id === activeTool)?.component || JSONFormatter;
 
   return (
-    <div className="devkit-app">
-      {/* Sidebar navigation */}
-      <aside className="devkit-sidebar">
-        <div className="sidebar-brand">
-          <div className="brand-logo">🛠️</div>
-          <div className="brand-meta">
-            <h1>DevKit</h1>
-            <span>v1.0.0</span>
-          </div>
-        </div>
-
-        <div className="sidebar-search">
-          <Search size={16} className="search-icon-svg" />
-          <input
-            type="text"
-            placeholder="Search tools..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <div className="shortcut-hint" style={{ position: 'absolute', right: 10, opacity: 0.8 }}>
-            <span className="shortcut-key" style={{ fontSize: 10, padding: '2px 5px' }}>⌘K</span>
-          </div>
-        </div>
-
-        <nav className="sidebar-nav">
-          {CATEGORIES.map(cat => {
-            // Filter tools within category based on global search query
-            const matchingTools = cat.tools.filter(t =>
-              t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              t.desc.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-
-            if (matchingTools.length === 0) return null;
-
-            return (
-              <div key={cat.id} className="sidebar-cat-group">
-                <div className="sidebar-cat-header" onClick={() => toggleCategory(cat.id)}>
-                  <span>{cat.title}</span>
-                  <span className="sidebar-cat-arrow">{expandedCats[cat.id] ? '▼' : '▶'}</span>
-                </div>
-                <div className={`sidebar-cat-children ${expandedCats[cat.id] ? '' : 'collapsed'}`}>
-                  {matchingTools.map(tool => {
-                    const Icon = tool.icon;
-                    return (
-                      <button
-                        key={tool.id}
-                        className={`nav-item ${activeTool === tool.id ? 'active' : ''}`}
-                        onClick={() => setActiveTool(tool.id)}
-                      >
-                        <Icon size={18} className="nav-icon" />
-                        <div className="nav-text">
-                          <span className="nav-name">{tool.name}</span>
-                          <span className="nav-desc">{tool.desc}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+    <div className="devkit-app top-nav-layout">
+      {/* Top Navbar */}
+      <header className="devkit-top-nav" ref={headerRef}>
+        <div className="top-nav-container">
+          <div className="top-nav-left">
+            <div className="sidebar-brand" style={{ padding: 0, marginRight: 24 }}>
+              <div className="brand-logo" style={{ fontSize: 22 }}>🛠️</div>
+              <div className="brand-meta">
+                <h1 style={{ fontSize: 16 }}>DevKit</h1>
               </div>
-            );
-          })}
-        </nav>
+            </div>
 
-        <div className="sidebar-footer">
-          <button className="theme-toggle-btn" onClick={toggleTheme}>
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-            <span>Theme Toggle</span>
-          </button>
-        </div>
-      </aside>
+            {/* Horizontal Categories */}
+            <nav className="horizontal-menu">
+              {CATEGORIES.map(cat => (
+                <div key={cat.id} className="menu-category-container">
+                  <button
+                    className={`menu-category-btn ${openDropdown === cat.id ? 'active' : ''} ${cat.tools.some(t => t.id === activeTool) ? 'contains-active' : ''}`}
+                    onClick={(e) => handleDropdownToggle(cat.id, e)}
+                  >
+                    <span>{cat.title}</span>
+                    <ChevronDown size={14} className="dropdown-arrow-icon" />
+                  </button>
 
-      {/* Main content viewport */}
-      <main className="devkit-main">
-        <header className="devkit-header">
-          <div className="header-breadcrumbs">
-            <span>DevKit</span>
-            <span className="separator">/</span>
-            <span className="active-path">{allTools.find(t => t.id === activeTool)?.name}</span>
+                  {openDropdown === cat.id && (
+                    <div className="dropdown-menu-box">
+                      {cat.tools.map(tool => {
+                        const Icon = tool.icon;
+                        return (
+                          <button
+                            key={tool.id}
+                            className={`dropdown-menu-item ${activeTool === tool.id ? 'active' : ''}`}
+                            onClick={() => selectTool(tool.id)}
+                          >
+                            <Icon size={16} className="nav-icon" />
+                            <div className="nav-text">
+                              <span className="nav-name">{tool.name}</span>
+                              <span className="nav-desc">{tool.desc}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </nav>
           </div>
-        </header>
+
+          <div className="top-nav-right">
+            {/* Quick Command Palette Trigger Button */}
+            <button className="search-trigger-btn" onClick={() => setShowCmdPalette(true)} title="Open Command Palette (⌘K)">
+              <Search size={16} />
+              <span>Search tools...</span>
+              <kbd className="cmd-kbd">⌘K</kbd>
+            </button>
+
+            {/* Theme Switcher */}
+            <button className="theme-toggle-btn-circle" onClick={toggleTheme} title="Toggle Dark/Light Mode">
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main viewport canvas */}
+      <main className="devkit-main">
         <div className="devkit-content-wrap">
           <CurrentToolComponent />
         </div>
